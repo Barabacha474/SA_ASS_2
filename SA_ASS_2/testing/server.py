@@ -26,7 +26,7 @@ lock = threading.Lock()
 
 flag = True
 lst = []
-lst.append("Previous messages\n")
+start_of_lst = "Previous messages\n"
 end_of_lst = "End of previous messages\n"
 
 def listen_for_client(cs):
@@ -35,6 +35,7 @@ def listen_for_client(cs):
     Whenever a message is received, broadcast it to all other connected clients
     """
     with lock:
+        cs.send(start_of_lst.encode())
         for item in lst:
             cs.send(item.encode())
         cs.send(end_of_lst.encode())
