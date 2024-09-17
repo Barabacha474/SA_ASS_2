@@ -50,8 +50,11 @@ def listen_for_client(cs):
             msg = msg.replace(separator_token, ":")
             with lock:
                 lst.append(msg + "\n")
-            msg_parts = msg.split(":")
             print(f"[*] Received: {msg}")
+            msg_end = msg[29:]
+            print(f"[*] msg_end: {msg_end}")
+            if (msg_end == "GET number of messages"):
+                msg += f"\nTotal number of messages in chat: {len(lst)}"
         for client_socket in client_sockets:
             client_socket.send(msg.encode())
 
