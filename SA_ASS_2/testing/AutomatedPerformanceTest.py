@@ -9,7 +9,8 @@ import os
 import hashlib
 
 # Constants for client-server communication
-SERVER_HOST = "127.0.0.1"
+SERVER_HOST = "0.0.0.0"
+CLIENT_SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 10000
 separator_token = "<SEP>"
 message = "Test message"
@@ -69,7 +70,7 @@ def run_server():
 
     # Start the server process
     server_process = subprocess.Popen(
-        ["python3", "server.py", "--ip_port", str(SERVER_PORT)],
+        ["py", "server.py", "--ip_port", str(SERVER_PORT)],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -87,8 +88,8 @@ def run_client():
     start_time = time.time()
 
     # Connect to the server
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((SERVER_HOST, SERVER_PORT))
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((CLIENT_SERVER_HOST, SERVER_PORT))
 
     # Measure the time taken to establish the connection
     connection_time = time.time() - start_time
@@ -98,11 +99,11 @@ def run_client():
     def listen_for_messages():
         while True:
             try:
-                message = s.recv(1024).decode()
+                message = client_socket.recv(1024).decode()
                 if message:
                     print(f"Received from server: {message}")
             except Exception as e:
-                print(f"[!] Error receiving message: {e}")
+                print(f"[!] Client socket error receiving message: {e}")
                 break
 
     # Start a thread to listen for server messages
@@ -110,16 +111,19 @@ def run_client():
     t.daemon = True
     t.start()
 
+
+
     # Send a message to the server and measure the time taken
     date_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     to_send = f"[{date_now}] Client{separator_token}{message}"
-    s.send(to_send.encode())
+    client_socket.send(to_send.encode())
     message_send_time = time.time() - start_time
-    print(f"Message sent in {message_send_time:.4f} seconds.")
+    print(f"Message sent in {message_send_time:.4f} seconds, {date_now}.")
+    print(f"Message sent: {to_send}")
 
-    # Close the connection after sending
-    time.sleep(1)
-    s.close()
+    time.sleep(2)
+    print(f"Closing client socket")
+    client_socket.close()
 
     return connection_time, message_send_time
 
@@ -156,15 +160,16 @@ if __name__ == "__main__":
     # Run the server and measure the startup time
     server_process, server_start_time = run_server()
 
+    time.sleep(1)
+
     # Run the client, measure connection and message sending time
     connection_time, message_send_time = run_client()
 
-    # Give some time for the server to handle the message and print output
-    time.sleep(2)
+    time.sleep(3)
 
     # Terminate the server process
     server_process.terminate()
-    print(f"Server process terminated.")
+    print(f"\nServer process terminated.")
 
     # Print summary of performance results
     print("\nPerformance Summary:")
