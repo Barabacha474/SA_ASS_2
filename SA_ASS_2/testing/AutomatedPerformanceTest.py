@@ -74,9 +74,6 @@ def run_server():
         stderr=subprocess.PIPE
     )
 
-    # Allow some time for the server to start
-    time.sleep(1)
-
     # Calculate the time taken to start the server
     server_start_time = time.time() - start_time
     print(f"Server started in {server_start_time:.4f} seconds.")
